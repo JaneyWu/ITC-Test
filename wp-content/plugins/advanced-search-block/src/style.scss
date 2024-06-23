@@ -1,0 +1,33 @@
+/**
+ * The following styles get applied both on the front of your site
+ * and in the editor.
+ *
+ * Replace them with your own styles or remove the file completely.
+ */
+
+.wp-block-create-block-advanced-search-block {
+	margin-top: 20px;
+	.inline-block {
+		display: inline-block;
+		padding-right: 20px;
+	}
+	.submit-btn {
+		margin-bottom: 8px;
+	}
+	.article-item {
+		border-bottom: 1px solid #d5d5d5;
+	}
+	.pagination {
+		padding-top: 20px;
+		text-align: center;
+		.page {
+			padding: 0 5px;
+			color: var(--wp-admin-theme-color, #333);
+			&.active {
+				font-weight: bold;
+				background-color: var(--wp-admin-theme-color, #333);
+				color: #fff;
+			}
+		}
+	}
+}
