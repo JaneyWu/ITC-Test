@@ -23,16 +23,16 @@ npm install
 # build the plugin
 npm run build
 
-# activate within the project
+# activate the plugin within the project
 ```
 
 ## Configuration
 
 ```js
     For example: https://domain.com/search?q=Test&cat=2&tags[]=1&tags[]=2
-    in the edit page, we need change the URL as like `search`
+    In the edit page, we need change the URL as like `search`
 ```
 
 ## Contact
 
-    Email: janey88wu@gamil.com
+    Email: janey88wu@gmail.com
