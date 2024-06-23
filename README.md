@@ -6,6 +6,8 @@ Added a new plugin named "Advanced Search Block". Please install and build this 
 ## Plugin Contents
 ![view](image.png)
 
+![search](image-1.png)
+
 ## Installation
 
 Include detailed steps on how to install and activate the plugin.
@@ -24,6 +26,7 @@ npm install
 npm run build
 
 # activate the plugin within the project
+
 ```
 
 ## Configuration
