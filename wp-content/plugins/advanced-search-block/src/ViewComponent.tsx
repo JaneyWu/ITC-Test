@@ -1,6 +1,6 @@
 import React, { useState, useEffect, } from "react";
-import { SelectControl, CheckboxControl, TextControl, Button } from '@wordpress/components';
-import { Flex, FlexBlock, FlexItem } from '@wordpress/components';
+import { SelectControl, CheckboxControl, TextControl, } from '@wordpress/components';
+import { Flex, FlexItem, Button, ButtonGroup } from '@wordpress/components';
 import "./style.scss";
 import { ITag, ICategory, IPost } from "./types";
 import axios from "axios";
@@ -42,12 +42,17 @@ export default function ViewComponent() {
             .then(response => setAvailableTags(response.data));
     }, []);
 
+    const changePage = (page: number) => {
+        setPage(page);
+        fetchPosts(keyword || '', category || '', selectedTags, page);
+    }
+
     const handleSearch = () => {
         setPage(1);
         fetchPosts(keyword || '', category || '', selectedTags);
     };
 
-    const fetchPosts = (search: string, categories: string, tags: number[]) => {
+    const fetchPosts = (search: string, categories: string, tags: number[], page = 1) => {
         const params: { [key: string]: number | string | number[] } = { search };
         if (categories) params.categories = categories;
         if (tags.length > 0) params.tags = tags;
@@ -57,6 +62,7 @@ export default function ViewComponent() {
         axios.get<IPost[]>('/wordpress/wp-json/wp/v2/posts', { params })
             .then(response => {
                 console.log(response.data);
+                console.log(response.headers);
                 setPosts(response.data)
                 setTotalPages(parseInt(response.headers['x-wp-totalpages'], 10));
             });
@@ -116,21 +122,33 @@ export default function ViewComponent() {
                 ))}
             </div>
             <div className="pagination">
-                <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page <= 1}
-                    className={page <= 1 ? 'disabled' : ''}
-                >
-                    Previous
-                </button>
-                <span>Page {page} of {totalPages}</span>
-                <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page >= totalPages}
-                    className={page >= totalPages ? 'disabled' : ''}
-                >
-                    Next
-                </button>
+                <ButtonGroup>
+                    <Button
+                        onClick={() => changePage(page - 1)}
+                        disabled={page <= 1}
+                        className={page <= 1 ? 'disabled' : ''}
+                    >
+                        Previous
+                    </Button>
+                    {
+                        Array.from({ length: totalPages }, (_, index) => (
+                            <Button
+                                key={index}
+                                onClick={() => changePage(index + 1)}
+                                variant={page === index + 1 ? 'primary' : ''}
+                            >
+                                {index + 1}
+                            </Button>
+                        ))
+                    }
+                    <Button
+                        onClick={() => changePage(page + 1)}
+                        disabled={page >= totalPages}
+                        className={page >= totalPages ? 'disabled' : ''}
+                    >
+                        Next
+                    </Button>
+                </ButtonGroup>
             </div>
         </div>
     )

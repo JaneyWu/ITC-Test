@@ -13,5 +13,8 @@ export interface IPost {
     title: {
         rendered: string;
     };
+    excerpt: {
+        rendered: string;
+    };
 }
 

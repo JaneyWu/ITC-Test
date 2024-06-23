@@ -2,36 +2,35 @@ import { useEffect, useState } from '@wordpress/element';
 import { useBlockProps } from '@wordpress/block-editor';
 import { SelectControl, CheckboxControl, TextControl, Button } from '@wordpress/components';
 import apiFetch from '@wordpress/api-fetch';
-import { ITag, ICategory } from './types'
+import { ITag, ICategory, IPost } from './types'
 import React from 'react';
 
 const Edit = () => {
     const [keyword, setKeyword] = useState('');
     const [category, setCategory] = useState('');
-    const [tags, setTags] = useState<number[]>([]);
-
-
-    const [categoriesOptions, setCategoriesOptions] = useState<ICategory[]>([]);
-    const [tagsOptions, setTagsOptions] = useState<ITag[]>([]);
-    const [posts, setPosts] = useState([]);
+    const [selectedTags, setSelectedTags] = useState<number[]>([]);
+    const [posts, setPosts] = useState<IPost[]>([]);
+    const [categories, setCategories] = useState<ICategory[]>([]);
+    const [availableTags, setAvailableTags] = useState<ITag[]>([]);
 
     useEffect(() => {
         // Fetch categories
         apiFetch({ path: '/wp/v2/categories' }).then((categories: any) => {
-            setCategoriesOptions(categories.map((cat: any) => ({ label: cat.name, value: cat.id })));
+            setCategories(categories);
         });
 
         // Fetch tags
         apiFetch({ path: '/wp/v2/tags' }).then((tags: any) => {
-            setTagsOptions(tags.map((tag: any) => ({ label: tag.name, value: tag.id })));
+            setAvailableTags(tags);
         });
 
         // Set initial values from URL
         const urlParams = new URLSearchParams(window.location.search);
         setKeyword(urlParams.get('q') || '');
         setCategory(urlParams.get('cat') || '');
-        setTags(urlParams.getAll('tags[]').every((tag) => !isNaN(parseInt(tag)) ? parseInt(tag) : 0));
-       
+        const tags = urlParams.getAll('tags[]');
+        setSelectedTags(tags.length ? tags.map((tag) => Number(tag)) : []);
+
 
         //fetchPosts(urlParams.get('q') || '', urlParams.get('cat') || '', urlParams.getAll('tags[]'));
     }, []);
@@ -50,10 +49,10 @@ const Edit = () => {
         const url = new URL(window.location.href);
         url.searchParams.set('q', keyword);
         url.searchParams.set('cat', category);
-        tags.forEach((tag, index) => {
-            url.searchParams.set(`tags[${index}]`, tag.toString());
+        selectedTags.forEach((tag) => {
+            url.searchParams.append('tags[]', tag.toString());
         });
-        window.history.pushState({}, '', url.toString());
+        window.history.pushState({}, '', url);
     };
 
     const handleSearch = () => {
@@ -71,27 +70,31 @@ const Edit = () => {
             <SelectControl
                 label="Category"
                 value={category}
-                options={categoriesOptions}
-                onChange={(value) => setCategory(value)}
-            />
+                onChange={(value) => setCategory(value)} >
+                <option value="">Select a category</option>
+                {categories.map((category: ICategory) =>
+                    (<option value={category.id}>{category.name}</option>)
+                )}
+            </SelectControl>
             <div>
-                <span>Tags: </span>
-                {tagsOptions.map((tag) => (
+            <span className="inline-block">Tags:</span>
+                {availableTags.map((tag: ITag) => (
                     <CheckboxControl
+                        className="inline-block"
                         key={tag.id}
                         label={tag.name}
-                        checked={tags.length > 0 && tags.includes(tag.id)}
+                        checked={selectedTags.includes(tag.id)}
                         onChange={(isChecked) => {
                             if (isChecked) {
-                                setTags([...tags, tag.id]);
+                                setSelectedTags([...selectedTags, tag.id]);
                             } else {
-                                setTags(tags.filter((t) => t !== tag.id));
+                                setSelectedTags(selectedTags.filter((id) => id !== tag.id));
                             }
                         }}
                     />
                 ))}
             </div>
-            <Button variant="primary" onClick={handleSearch}>Search</Button>
+            <Button className="submit-btn" variant="primary" text="Search" onClick={handleSearch} />
             <div className="search-results">
                 {posts.map((post: any) => (
                     <div key={post.id}>
