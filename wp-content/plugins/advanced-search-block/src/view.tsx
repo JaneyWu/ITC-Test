@@ -4,8 +4,11 @@ import ViewComponent from './ViewComponent';
 import React from "react";
 
 domReady(() => {
-    const root = document.getElementById("search-main");
-    if (root) {
-        createRoot(root).render(<ViewComponent />);
+    const searchBlock = document.getElementById("search-main");
+    if (searchBlock) {
+        const placeholder = searchBlock.getAttribute('data-placeholder') || '';
+        const itemsPerPage = Number(searchBlock.getAttribute('data-items-per-page')) || 0;
+        const attributes = { placeholder, itemsPerPage };
+        createRoot(searchBlock).render(<ViewComponent {...attributes} />);
     }
 });

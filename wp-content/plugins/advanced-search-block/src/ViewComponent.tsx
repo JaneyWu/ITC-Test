@@ -2,11 +2,10 @@ import React, { useState, useEffect, } from "react";
 import { SelectControl, CheckboxControl, TextControl, } from '@wordpress/components';
 import { Flex, FlexItem, Button, ButtonGroup } from '@wordpress/components';
 import "./style.scss";
-import { ITag, ICategory, IPost } from "./types";
+import { ITag, ICategory, IPost, IAttributes } from "./types";
 import axios from "axios";
-const POSTS_PER_PAGE = 3
 
-export default function ViewComponent() {
+export default function ViewComponent(props: IAttributes) {
     const [keyword, setKeyword] = useState('');
     const [category, setCategory] = useState('');
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -56,13 +55,11 @@ export default function ViewComponent() {
         const params: { [key: string]: number | string | number[] } = { search };
         if (categories) params.categories = categories;
         if (tags.length > 0) params.tags = tags;
-        params.per_page = POSTS_PER_PAGE;
+        params.per_page = props.itemsPerPage;
         params.page = page;
 
         axios.get<IPost[]>('/wordpress/wp-json/wp/v2/posts', { params })
             .then(response => {
-                console.log(response.data);
-                console.log(response.headers);
                 setPosts(response.data)
                 setTotalPages(parseInt(response.headers['x-wp-totalpages'], 10));
             });
@@ -76,7 +73,7 @@ export default function ViewComponent() {
                         label="Keyword"
                         value={keyword}
                         onChange={(value) => setKeyword(value)}
-                        placeholder="Search..."
+                        placeholder={props.placeholder}
                         maxLength={80}
                     />
                 </FlexItem>
@@ -107,7 +104,7 @@ export default function ViewComponent() {
                             if (isChecked) {
                                 setSelectedTags([...selectedTags, tag.id]);
                             } else {
-                                setSelectedTags(selectedTags.filter((id) => id !== tag.id));
+                                setSelectedTags(selectedTags.filter((id: number) => id !== tag.id));
                             }
                         }}
                     />

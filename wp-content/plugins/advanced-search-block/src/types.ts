@@ -18,3 +18,8 @@ export interface IPost {
     };
 }
 
+
+export interface IAttributes {
+    placeholder: string;
+    itemsPerPage: number;
+}

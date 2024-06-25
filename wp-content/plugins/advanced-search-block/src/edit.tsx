@@ -1,17 +1,16 @@
-import { useEffect, useState } from '@wordpress/element';
-import { useBlockProps } from '@wordpress/block-editor';
-import { SelectControl, CheckboxControl, TextControl, Button } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, TextControl, SelectControl, RangeControl, FlexItem, Flex, Button, CheckboxControl } from '@wordpress/components';
+import { BlockEditProps } from '@wordpress/blocks';
+import React, { useEffect, useState } from 'react';
+import { IAttributes, ICategory, ITag } from './types';
 import apiFetch from '@wordpress/api-fetch';
-import { ITag, ICategory, IPost } from './types'
-import React from 'react';
 
-const Edit = () => {
-    const [keyword, setKeyword] = useState('');
-    const [category, setCategory] = useState('');
+const Edit: React.FC<BlockEditProps<IAttributes>> = ({ attributes, setAttributes }) => {
+    const [categories, setCategories] = React.useState<ICategory[]>([]);
+    const [availableTags, setAvailableTags] = React.useState<ITag[]>([]);
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
-    const [posts, setPosts] = useState<IPost[]>([]);
-    const [categories, setCategories] = useState<ICategory[]>([]);
-    const [availableTags, setAvailableTags] = useState<ITag[]>([]);
+    const { itemsPerPage, placeholder } = attributes;
 
     useEffect(() => {
         // Fetch categories
@@ -23,88 +22,79 @@ const Edit = () => {
         apiFetch({ path: '/wp/v2/tags' }).then((tags: any) => {
             setAvailableTags(tags);
         });
-
-        // Set initial values from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        setKeyword(urlParams.get('q') || '');
-        setCategory(urlParams.get('cat') || '');
-        const tags = urlParams.getAll('tags[]');
-        setSelectedTags(tags.length ? tags.map((tag) => Number(tag)) : []);
-
-
-        //fetchPosts(urlParams.get('q') || '', urlParams.get('cat') || '', urlParams.getAll('tags[]'));
     }, []);
 
-    // const fetchPosts = (keyword: string, category: string, tags: string[]) => {
-    //     const params: { [key: string]: string | string[] } = { search: keyword };
-    //     if (category) params.categories = category;
-    //     if (tags.length > 0) params.tags = tags;
-
-    //     apiFetch({ path: `/wp/v2/posts`, data: params }).then((response: Post[]) => {
-    //         setPosts(response);
-    //     });
-    // };
-
-    const updateURLParams = () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set('q', keyword);
-        url.searchParams.set('cat', category);
-        selectedTags.forEach((tag) => {
-            url.searchParams.append('tags[]', tag.toString());
-        });
-        window.history.pushState({}, '', url);
+    const onChangePlaceholder = (placeholder: string) => {
+        setAttributes({ placeholder });
     };
-
-    const handleSearch = () => {
-        updateURLParams();
-        // fetchPosts(keyword, category, tags);
+    const onChangeItemsPerPage = (value: string) => {
+        setAttributes({ itemsPerPage: parseInt(value, 10) });
     };
 
     return (
-        <div {...useBlockProps()}>
-            <TextControl
-                label="Keyword"
-                value={keyword}
-                onChange={(value) => setKeyword(value)}
-            />
-            <SelectControl
-                label="Category"
-                value={category}
-                onChange={(value) => setCategory(value)} >
-                <option value="">Select a category</option>
-                {categories.map((category: ICategory) =>
-                    (<option value={category.id}>{category.name}</option>)
-                )}
-            </SelectControl>
-            <div>
-            <span className="inline-block">Tags:</span>
-                {availableTags.map((tag: ITag) => (
-                    <CheckboxControl
-                        className="inline-block"
-                        key={tag.id}
-                        label={tag.name}
-                        checked={selectedTags.includes(tag.id)}
-                        onChange={(isChecked) => {
-                            if (isChecked) {
-                                setSelectedTags([...selectedTags, tag.id]);
-                            } else {
-                                setSelectedTags(selectedTags.filter((id) => id !== tag.id));
-                            }
-                        }}
+        <>
+            <InspectorControls>
+                <PanelBody title={__('Settings', 'advanced-search-block')}>
+                    <TextControl
+                        value={placeholder}
+                        label={__('Placeholder', 'advanced-search-block')}
+                        placeholder={placeholder}
+                        onChange={onChangePlaceholder}
                     />
-                ))}
+                    <RangeControl
+                        label={__('Items per page', 'advanced-search-block')}
+                        value={itemsPerPage}
+                        onChange={onChangeItemsPerPage}
+                        min={1}
+                        max={50}
+                    />
+                </PanelBody>
+            </InspectorControls>
+            <div {...useBlockProps()}>
+                <Flex align="flex-end">
+                    <FlexItem>
+                        <TextControl
+                            label="Keyword"
+                            onChange={onChangePlaceholder}
+                            value={placeholder}
+                        />
+                    </FlexItem>
+                    <FlexItem>
+                        <SelectControl
+                            label="Category" >
+                            <option value="">Select a category</option>
+                            {categories.map((category: ICategory) =>
+                                (<option value={category.id}>{category.name}</option>)
+                            )}
+                        </SelectControl>
+                    </FlexItem>
+                    <FlexItem>
+                        <Button className="submit-btn" variant="primary" text="Search" />
+                    </FlexItem>
+                </Flex>
+                <div>
+                    <span className="inline-block">Tags:</span>
+                    {availableTags.map((tag: ITag) => (
+                        <CheckboxControl
+                            className="inline-block"
+                            key={tag.id}
+                            label={tag.name}
+                            checked={selectedTags.includes(tag.id)}
+                            onChange={(isChecked) => {
+                                if (isChecked) {
+                                    setSelectedTags([...selectedTags, tag.id]);
+                                } else {
+                                    setSelectedTags(selectedTags.filter((id: number) => id !== tag.id));
+                                }
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
-            <Button className="submit-btn" variant="primary" text="Search" onClick={handleSearch} />
-            <div className="search-results">
-                {posts.map((post: any) => (
-                    <div key={post.id}>
-                        <a href={post.link}>{post.title.rendered}</a>
-                        <p dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
-                    </div>
-                ))}
-            </div>
-        </div>
+        </>
     );
 };
 
 export default Edit;
+
+

@@ -20,14 +20,5 @@
 	.pagination {
 		padding-top: 20px;
 		text-align: center;
-		.page {
-			padding: 0 5px;
-			color: var(--wp-admin-theme-color, #333);
-			&.active {
-				font-weight: bold;
-				background-color: var(--wp-admin-theme-color, #333);
-				color: #fff;
-			}
-		}
 	}
 }

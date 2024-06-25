@@ -14,16 +14,45 @@
  */
 
 if (!defined('ABSPATH')) {
-	exit; // Exit if accessed directly.
+    exit; // Exit if accessed directly.
 }
 function create_block_advanced_search_block_block_init()
 {
-	register_block_type(__DIR__ . '/build');
+    register_block_type(
+        __DIR__ . '/build',
+        array(
+            'attributes' => array(
+                'placeholder' => array(
+                    'type' => 'string',
+                    'default' => 'Search...'
+                ),
+                'itemsPerPage' => array(
+                    'type' => 'number',
+                    'default' => 10
+                ),
+            ),
+            'render_callback' => 'render_advanced_search_block',
+        )
+    );
 }
 add_action('init', 'create_block_advanced_search_block_block_init');
+function render_advanced_search_block($attributes)
+{
+    $placeholder = $attributes['placeholder'];
+    $itemsPerPage = $attributes['itemsPerPage'];
 
+    ob_start();
+    ?>
+    <div id="search-main" class="wp-block-create-block-advanced-search-block"
+        data-placeholder="<?php echo esc_attr($placeholder); ?>"
+        data-items-per-page="<?php echo esc_attr($itemsPerPage); ?>">
+    </div>
+    <?php
+    return ob_get_clean();
+}
 
-function enqueue_wp_components_styles() {
+function enqueue_wp_components_styles()
+{
     // Enqueue the default styles for the wp-components package
     wp_enqueue_style(
         'wp-components-css',
@@ -34,7 +63,8 @@ function enqueue_wp_components_styles() {
 }
 add_action('wp_enqueue_scripts', 'enqueue_wp_components_styles');
 
-function advanced_search_block_frontend_assets() {
+function advanced_search_block_frontend_assets()
+{
     // Enqueue the block's CSS for the frontend
     wp_enqueue_style(
         'advanced_search_block-frontend-css',

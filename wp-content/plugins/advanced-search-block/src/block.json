@@ -8,6 +8,18 @@
 	"icon": "smiley",
 	"description": "A Gutenberg block for advanced search functionality.",
 	"example": {},
+	"attributes": {
+		"placeholder": {
+			"type": "string",
+			"source": "attribute",
+			"attribute": "data-placeholder",
+			"default": "Search..."
+		},
+		"itemsPerPage": {
+			"type": "number",
+			"default": 10
+		}
+	},
 	"supports": {
 		"html": false
 	},
